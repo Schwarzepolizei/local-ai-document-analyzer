@@ -2,8 +2,8 @@ from pathlib import Path
 
 from app.agent.extractor import Extractor
 from app.agent.summarizer import Summarizer
+from app.export.markdown_exporter import MarkdownExporter
 from app.pipeline.etl_pipeline import run_etl
-from app.schemas import document
 from app.schemas.extraction import ExtractionResult
 from app.schemas.summary import SummaryResult
 from app.utils.logger import logger
@@ -60,3 +60,19 @@ class DocumentService:
             document=document,
             user_request=user_request,
         )
+
+    def export_summary_to_markdown(
+        self,
+        summary: SummaryResult,
+        output_path: str | Path,
+    ) -> Path:
+        exporter = MarkdownExporter()
+        return exporter.export_summary(summary, output_path)
+
+    def export_extraction_to_markdown(
+        self,
+        extraction: ExtractionResult,
+        output_path: str | Path,
+    ) -> Path:
+        exporter = MarkdownExporter()
+        return exporter.export_extraction(extraction, output_path)
