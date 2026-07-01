@@ -1,7 +1,10 @@
 from pathlib import Path
 
+from app.agent.extractor import Extractor
 from app.agent.summarizer import Summarizer
 from app.pipeline.etl_pipeline import run_etl
+from app.schemas import document
+from app.schemas.extraction import ExtractionResult
 from app.schemas.summary import SummaryResult
 from app.utils.logger import logger
 
@@ -39,3 +42,21 @@ class DocumentService:
         logger.info("Summarizing document: %s", document.source.file_name)
 
         return summarizer.summarize(document)
+    
+    def extract_information(
+        self,
+        file_path: str | Path,
+        user_request: str,
+        ) -> ExtractionResult:
+        document = self.process_document(file_path)
+        extractor = Extractor()
+
+        logger.info(
+            "Extracting information from document: %s",
+            document.source.file_name,
+        )
+
+        return extractor.extract(
+            document=document,
+            user_request=user_request,
+        )
