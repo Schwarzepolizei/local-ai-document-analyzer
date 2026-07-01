@@ -14,8 +14,12 @@ class ExtractionResponseParser:
             if not block:
                 continue
 
-            field = self._extract_value(block, "", ["Значение:", "Источник:", "Уверенность:"])
-            value = self._extract_value(block, "Значение:", ["Источник:", "Уверенность:"])
+            field = self._extract_value(
+                block, "", ["Значение:", "Источник:", "Уверенность:"]
+            )
+            value = self._extract_value(
+                block, "Значение:", ["Источник:", "Уверенность:"]
+            )
             source = self._extract_value(block, "Источник:", ["Уверенность:"])
             confidence = self._extract_value(block, "Уверенность:", [])
 

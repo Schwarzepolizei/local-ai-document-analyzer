@@ -42,12 +42,12 @@ class DocumentService:
         logger.info("Summarizing document: %s", document.source.file_name)
 
         return summarizer.summarize(document)
-    
+
     def extract_information(
         self,
         file_path: str | Path,
         user_request: str,
-        ) -> ExtractionResult:
+    ) -> ExtractionResult:
         document = self.process_document(file_path)
         extractor = Extractor()
 

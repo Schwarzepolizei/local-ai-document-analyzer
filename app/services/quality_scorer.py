@@ -1,5 +1,3 @@
-
-
 def compute_text_noise_ratio(text: str) -> float:
     if not text.strip():
         return 1.0
