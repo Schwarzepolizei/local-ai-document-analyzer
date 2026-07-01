@@ -1,12 +1,15 @@
-from fastapi import FastAPI
-from app.api.routes import router
-from app.api.rag_router import router as rag_router
+from app.config.settings import settings
+from app.services.document_service import DocumentService
+from app.utils.logger import logger
 
-app = FastAPI(title="ETL Document Service")
 
-app.include_router(router)
-app.include_router(rag_router)
+def main() -> None:
+    logger.info("Starting %s %s", settings.app_name, settings.app_version)
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+    service = DocumentService()
+    print(settings.app_name)
+    print("DocumentService initialized:", service.__class__.__name__)
+
+
+if __name__ == "__main__":
+    main()
