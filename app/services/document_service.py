@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from app.agent.summarizer import Summarizer
 from app.pipeline.etl_pipeline import run_etl
 from app.schemas.document import ETLResponse
 from app.utils.logger import logger
@@ -30,3 +31,11 @@ class DocumentService:
         )
 
         return result
+    
+    def summarize_document(self, file_path: str | Path) -> str:
+        document = self.process_document(file_path)
+        summarizer = Summarizer()
+
+        logger.info("Summarizing document: %s", document.source.file_name)
+
+        return summarizer.summarize(document)
