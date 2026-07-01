@@ -7,7 +7,9 @@ def get_model():
     global _model
     if _model is None:
         print("Loading embedding model...")
-        _model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+        _model = SentenceTransformer(
+            "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+        )
         print("Embedding model loaded")
     return _model
 

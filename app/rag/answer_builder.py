@@ -2,7 +2,9 @@ from typing import Any
 
 
 class AnswerBuilder:
-    def build_context(self, results: list[dict[str, Any]], max_chars: int = 4000) -> str:
+    def build_context(
+        self, results: list[dict[str, Any]], max_chars: int = 4000
+    ) -> str:
         context_parts = []
         total_len = 0
 
@@ -48,6 +50,4 @@ class AnswerBuilder:
         if len(text) > 1200:
             text = text[:1200].rstrip() + "..."
 
-        return (
-            f"Наиболее релевантный фрагмент по запросу:\n\n{text}"
-        )
+        return f"Наиболее релевантный фрагмент по запросу:\n\n{text}"

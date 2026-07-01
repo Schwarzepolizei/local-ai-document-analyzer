@@ -17,7 +17,9 @@ class FaissIndexStore:
     def exists(self) -> bool:
         return os.path.exists(self.index_path) and os.path.exists(self.meta_path)
 
-    def create(self, embeddings: list[list[float]], metadata: list[dict[str, Any]]) -> None:
+    def create(
+        self, embeddings: list[list[float]], metadata: list[dict[str, Any]]
+    ) -> None:
         if not embeddings:
             raise ValueError("No embeddings to save")
 
@@ -32,7 +34,9 @@ class FaissIndexStore:
         with open(self.meta_path, "w", encoding="utf-8") as f:
             json.dump(metadata, f, ensure_ascii=False, indent=2)
 
-    def append(self, embeddings: list[list[float]], metadata: list[dict[str, Any]]) -> None:
+    def append(
+        self, embeddings: list[list[float]], metadata: list[dict[str, Any]]
+    ) -> None:
         if not embeddings:
             raise ValueError("No embeddings to append")
 
@@ -66,7 +70,7 @@ class FaissIndexStore:
 
         index = faiss.read_index(self.index_path)
 
-        with open(self.meta_path, "r", encoding="utf-8") as f:
+        with open(self.meta_path, encoding="utf-8") as f:
             metadata = json.load(f)
 
         return index, metadata
@@ -102,8 +106,10 @@ class FaissIndexStore:
             grouped[key]["chunks_count"] += 1
 
         return list(grouped.values())
-    
-    def overwrite(self, embeddings: list[list[float]], metadata: list[dict[str, Any]]) -> None:
+
+    def overwrite(
+        self, embeddings: list[list[float]], metadata: list[dict[str, Any]]
+    ) -> None:
         if not embeddings:
             self.clear()
             return

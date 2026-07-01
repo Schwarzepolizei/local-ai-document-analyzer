@@ -1,6 +1,5 @@
-import json
 
-from fastapi import APIRouter, File, UploadFile, HTTPException
+from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from app.pipeline.etl_pipeline import run_etl
 from app.rag.answer_builder import AnswerBuilder
@@ -9,16 +8,15 @@ from app.rag.index_builder import IndexBuilder
 from app.rag.index_store import FaissIndexStore
 from app.rag.retriever import Retriever
 from app.schemas.rag import (
-    SearchRequest,
-    SearchResponse,
-    IndexResponse,
     AskRequest,
     AskResponse,
-    DocumentsResponse,
     DeleteDocumentRequest,
     DeleteDocumentResponse,
+    DocumentsResponse,
+    IndexResponse,
+    SearchRequest,
+    SearchResponse,
 )
-
 
 router = APIRouter(prefix="/rag", tags=["rag"])
 
@@ -32,7 +30,9 @@ async def index_document(file: UploadFile = File(...)):
         etl_dict = etl_response.model_dump()
 
         if etl_dict["processing"]["status"] != "success":
-            raise HTTPException(status_code=400, detail=etl_dict["processing"]["errors"])
+            raise HTTPException(
+                status_code=400, detail=etl_dict["processing"]["errors"]
+            )
 
         builder = IndexBuilder()
         result = builder.build_from_etl_response(etl_dict)
@@ -60,7 +60,7 @@ async def search(request: SearchRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 
 @router.delete("/index")
 async def clear_index():
@@ -70,7 +70,7 @@ async def clear_index():
         return {"status": "success", "message": "Index cleared"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 
 @router.post("/ask", response_model=AskResponse)
 async def ask(request: AskRequest):
@@ -95,7 +95,7 @@ async def ask(request: AskRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 
 @router.get("/documents", response_model=DocumentsResponse)
 async def list_documents():
@@ -105,7 +105,7 @@ async def list_documents():
         return DocumentsResponse(documents=documents)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 
 @router.delete("/document", response_model=DeleteDocumentResponse)
 async def delete_document(request: DeleteDocumentRequest):

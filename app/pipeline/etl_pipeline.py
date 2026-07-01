@@ -1,38 +1,40 @@
 import time
 import uuid
 
-from app.parsers.txt_parser import parse_txt
-from app.schemas.document import (
-    ETLResponse,
-    SourceMeta,
-    DocumentMeta,
-    Content,
-    Page,
-    ProcessingInfo,
-)
-
 from app.parsers.doc_parser import parse_doc
-from app.parsers.pdf_parser import parse_pdf
-from app.parsers.rtf_parser import parse_rtf
+from app.parsers.docx_parser import parse_docx
 from app.parsers.image_parser import parse_image
 from app.parsers.pdf_ocr_parser import parse_scanned_pdf
-from app.parsers.docx_parser import parse_docx
+from app.parsers.pdf_parser import parse_pdf
+from app.parsers.rtf_parser import parse_rtf
+from app.parsers.txt_parser import parse_txt
 from app.parsers.xlsx_parser import parse_xlsx
-from app.services.ocr_extractor import build_ocr_line_blocks, merge_ocr_lines_to_paragraphs
+from app.schemas.document import (
+    Content,
+    DocumentMeta,
+    ETLResponse,
+    Page,
+    ProcessingInfo,
+    SourceMeta,
+)
+from app.services.ocr_extractor import (
+    build_ocr_line_blocks,
+    merge_ocr_lines_to_paragraphs,
+)
 from app.services.ocr_filter import filter_ocr_noise
 from app.services.processing_stats import build_processing_stats
-from app.services.text_splitter import (
-    build_blocks_from_text,
-    build_chunks_from_blocks,
-    build_blocks_from_pages,
-    build_blocks_from_sheet_rows,
-    build_blocks_from_word_elements,
+from app.services.quality_scorer import (
+    compute_document_quality_score,
+    compute_page_quality_score,
+    get_quality_label,
 )
 from app.services.text_cleaner import clean_text
-from app.services.quality_scorer import (
-    compute_page_quality_score,
-    compute_document_quality_score,
-    get_quality_label,
+from app.services.text_splitter import (
+    build_blocks_from_pages,
+    build_blocks_from_sheet_rows,
+    build_blocks_from_text,
+    build_blocks_from_word_elements,
+    build_chunks_from_blocks,
 )
 from app.utils.file_types import detect_file_type
 
@@ -251,8 +253,7 @@ def run_etl(file_name: str, file_bytes: bytes) -> ETLResponse:
             ]
 
             has_formula_like_content = any(
-                marker in full_text.lower()
-                for marker in formula_markers
+                marker in full_text.lower() for marker in formula_markers
             )
 
             page_score = compute_page_quality_score(
@@ -289,7 +290,9 @@ def run_etl(file_name: str, file_bytes: bytes) -> ETLResponse:
             extraction_method = "native"
 
             cleaned_sheet_texts = [clean_text(sheet["text"]) for sheet in sheets_data]
-            full_text = "\n\n".join([text for text in cleaned_sheet_texts if text.strip()])
+            full_text = "\n\n".join(
+                [text for text in cleaned_sheet_texts if text.strip()]
+            )
 
             pages = []
             page_scores = []
@@ -377,8 +380,8 @@ def run_etl(file_name: str, file_bytes: bytes) -> ETLResponse:
                         "Текстовый слой PDF-файла недостаточен; использован OCR fallback."
                     )
 
-                    page_texts, page_count, page_ocr_data, page_confidences = parse_scanned_pdf(
-                        file_bytes
+                    page_texts, page_count, page_ocr_data, page_confidences = (
+                        parse_scanned_pdf(file_bytes)
                     )
 
                     is_scanned = True
@@ -390,8 +393,8 @@ def run_etl(file_name: str, file_bytes: bytes) -> ETLResponse:
                     page_confidences = [None] * len(cleaned_pages)
 
             else:
-                page_texts, page_count, page_ocr_data, page_confidences = parse_scanned_pdf(
-                    file_bytes
+                page_texts, page_count, page_ocr_data, page_confidences = (
+                    parse_scanned_pdf(file_bytes)
                 )
 
                 is_scanned = True
@@ -450,16 +453,16 @@ def run_etl(file_name: str, file_bytes: bytes) -> ETLResponse:
                     )
 
                 full_text = "\n\n".join(
-                    block.text.strip()
-                    for block in blocks
-                    if block.text.strip()
+                    block.text.strip() for block in blocks if block.text.strip()
                 )
                 text_extracted = has_valid_text(full_text)
 
                 page_text_map = {}
 
                 for block in blocks:
-                    page_text_map.setdefault(block.page_num, []).append(block.text.strip())
+                    page_text_map.setdefault(block.page_num, []).append(
+                        block.text.strip()
+                    )
 
                 for page_num in range(1, page_count + 1):
                     page_blocks = page_text_map.get(page_num)
@@ -482,8 +485,7 @@ def run_etl(file_name: str, file_bytes: bytes) -> ETLResponse:
                     )
 
                     page_has_formula_like_content = any(
-                        marker in page_text.lower()
-                        for marker in formula_markers
+                        marker in page_text.lower() for marker in formula_markers
                     )
 
                     if not has_valid_text(page_text):
@@ -521,8 +523,7 @@ def run_etl(file_name: str, file_bytes: bytes) -> ETLResponse:
                     page_suspicious_words = count_suspicious_words(page_text)
 
                     page_has_formula_like_content = any(
-                        marker in page_text.lower()
-                        for marker in formula_markers
+                        marker in page_text.lower() for marker in formula_markers
                     )
 
                     if page_artifact_ratio > 0.03:
@@ -547,7 +548,7 @@ def run_etl(file_name: str, file_bytes: bytes) -> ETLResponse:
 
         except Exception as e:
             errors.append(f"PDF processing error: {type(e).__name__}: {str(e)}")
-            
+
     elif file_type == "image":
         try:
             raw_text, _, avg_conf, ocr_data = parse_image(file_bytes)
@@ -572,7 +573,9 @@ def run_etl(file_name: str, file_bytes: bytes) -> ETLResponse:
                 )
             ]
 
-            line_blocks = build_ocr_line_blocks(ocr_data, page_num=1) if ocr_data else []
+            line_blocks = (
+                build_ocr_line_blocks(ocr_data, page_num=1) if ocr_data else []
+            )
             blocks = merge_ocr_lines_to_paragraphs(line_blocks) if line_blocks else []
 
         except Exception as e:
@@ -588,16 +591,18 @@ def run_etl(file_name: str, file_bytes: bytes) -> ETLResponse:
     duration_ms = int((time.time() - started) * 1000)
     text_extracted = bool(full_text.strip())
 
-    document_quality_score = compute_document_quality_score(page_scores) if pages else 0.0
+    document_quality_score = (
+        compute_document_quality_score(page_scores) if pages else 0.0
+    )
     document_quality_label = get_quality_label(document_quality_score)
 
     processing_stats = build_processing_stats(
-    full_text=full_text,
-    pages=pages,
-    blocks=blocks,
-    chunks=chunks,
-    extra_stats=extra_stats,
-)
+        full_text=full_text,
+        pages=pages,
+        blocks=blocks,
+        chunks=chunks,
+        extra_stats=extra_stats,
+    )
 
     return ETLResponse(
         document_id=doc_id,

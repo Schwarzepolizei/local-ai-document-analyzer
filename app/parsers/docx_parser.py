@@ -1,4 +1,5 @@
 from io import BytesIO
+
 from docx import Document
 from docx.document import Document as DocumentObject
 from docx.table import Table

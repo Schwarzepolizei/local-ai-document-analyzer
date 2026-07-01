@@ -3,15 +3,14 @@ import re
 import pytesseract
 from pytesseract import Output
 
-from app.schemas.document import Block, BBox
+from app.schemas.document import BBox, Block
 
 
-def extract_ocr_data(image, lang: str = "rus+eng", config: str = "--oem 3 --psm 6") -> list[dict]:
+def extract_ocr_data(
+    image, lang: str = "rus+eng", config: str = "--oem 3 --psm 6"
+) -> list[dict]:
     data = pytesseract.image_to_data(
-        image,
-        lang=lang,
-        config=config,
-        output_type=Output.DICT
+        image, lang=lang, config=config, output_type=Output.DICT
     )
 
     n = len(data["text"])
@@ -49,6 +48,7 @@ def extract_ocr_data(image, lang: str = "rus+eng", config: str = "--oem 3 --psm 
 
     return results
 
+
 def build_text_from_ocr_data(ocr_data: list[dict]) -> str:
     if not ocr_data:
         return ""
@@ -78,7 +78,10 @@ def compute_average_confidence(ocr_data: list[dict]) -> float | None:
 
     return round(sum(confs) / len(confs), 2)
 
-def build_ocr_line_blocks(ocr_data: list[dict], page_num: int = 1, start_block_index: int = 1) -> list[Block]:
+
+def build_ocr_line_blocks(
+    ocr_data: list[dict], page_num: int = 1, start_block_index: int = 1
+) -> list[Block]:
     if not ocr_data:
         return []
 
@@ -129,6 +132,7 @@ def build_ocr_line_blocks(ocr_data: list[dict], page_num: int = 1, start_block_i
         block_index += 1
 
     return blocks
+
 
 def is_noise_text(text: str) -> bool:
     text = text.strip()
@@ -183,6 +187,7 @@ def filter_ocr_data(
 
     return filtered
 
+
 def merge_ocr_lines_to_paragraphs(
     line_blocks: list[Block],
     y_gap_threshold: float = 20.0,
@@ -193,7 +198,11 @@ def merge_ocr_lines_to_paragraphs(
 
     sorted_blocks = sorted(
         line_blocks,
-        key=lambda b: (b.page_num, b.bbox.y1 if b.bbox else 0, b.bbox.x1 if b.bbox else 0)
+        key=lambda b: (
+            b.page_num,
+            b.bbox.y1 if b.bbox else 0,
+            b.bbox.x1 if b.bbox else 0,
+        ),
     )
 
     merged_blocks = []

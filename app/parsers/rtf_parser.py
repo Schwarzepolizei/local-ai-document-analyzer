@@ -1,4 +1,5 @@
 import re
+
 from striprtf.striprtf import rtf_to_text
 
 

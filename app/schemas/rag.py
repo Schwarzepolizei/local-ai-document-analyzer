@@ -1,12 +1,12 @@
+
 from pydantic import BaseModel
-from typing import Optional
 
 
 class SearchRequest(BaseModel):
     query: str
     top_k: int = 5
-    document_id: Optional[str] = None
-    file_name: Optional[str] = None
+    document_id: str | None = None
+    file_name: str | None = None
 
 
 class IndexResponse(BaseModel):
@@ -41,8 +41,8 @@ class SearchResponse(BaseModel):
 class AskRequest(BaseModel):
     query: str
     top_k: int = 5
-    document_id: Optional[str] = None
-    file_name: Optional[str] = None
+    document_id: str | None = None
+    file_name: str | None = None
 
 
 class AskResponse(BaseModel):

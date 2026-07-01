@@ -1,5 +1,5 @@
+
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
 
 
 class BBox(BaseModel):
@@ -15,37 +15,37 @@ class Block(BaseModel):
     block_order: int
     block_type: str
     text: str
-    bbox: Optional[BBox] = None
-    confidence: Optional[float] = None
+    bbox: BBox | None = None
+    confidence: float | None = None
 
 
 class Chunk(BaseModel):
     chunk_id: str
     chunk_order: int
-    block_ids: List[str]
+    block_ids: list[str]
     text: str
 
-    page_span: List[int] = []
-    block_types: List[str] = []
+    page_span: list[int] = []
+    block_types: list[str] = []
     char_count: int = 0
 
-    section_title: Optional[str] = None
+    section_title: str | None = None
     content_type: str = "text"
-    source_context: Optional[str] = None
+    source_context: str | None = None
     token_estimate: int = 0
 
 
 class Page(BaseModel):
     page_num: int
     text: str
-    width: Optional[int] = None
-    height: Optional[int] = None
-    confidence: Optional[float] = None
-    quality_score: Optional[float] = None
+    width: int | None = None
+    height: int | None = None
+    confidence: float | None = None
+    quality_score: float | None = None
 
 
 class DocumentMeta(BaseModel):
-    language: List[str]
+    language: list[str]
     page_count: int | None = None
     is_scanned: bool
     extraction_method: str
@@ -65,8 +65,8 @@ class ProcessingStats(BaseModel):
     chunks_count: int = 0
     empty_pages_count: int = 0
     text_length: int = 0
-    avg_page_confidence: Optional[float] = None
-    avg_page_quality: Optional[float] = None
+    avg_page_confidence: float | None = None
+    avg_page_quality: float | None = None
 
     tables_count: int = 0
     table_rows_count: int = 0
@@ -78,17 +78,17 @@ class ProcessingStats(BaseModel):
 class ProcessingInfo(BaseModel):
     status: str
     pipeline_version: str
-    duration_ms: Optional[int] = None
-    warnings: List[str] = []
-    errors: List[str] = []
-    stats: Optional[ProcessingStats] = None
+    duration_ms: int | None = None
+    warnings: list[str] = []
+    errors: list[str] = []
+    stats: ProcessingStats | None = None
 
 
 class Content(BaseModel):
     full_text: str
-    pages: List[Page]
-    blocks: List[Block]
-    chunks: List[Chunk]
+    pages: list[Page]
+    blocks: list[Block]
+    chunks: list[Chunk]
 
 
 class ETLResponse(BaseModel):

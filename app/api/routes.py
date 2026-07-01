@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, File, UploadFile
 
 from app.pipeline.etl_pipeline import run_etl
 from app.schemas.document import ETLResponse

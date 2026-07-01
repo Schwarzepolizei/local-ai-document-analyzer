@@ -5,14 +5,16 @@ from PIL import Image
 
 from app.services.image_preprocessor import preprocess_pil_image_for_ocr
 from app.services.ocr_extractor import (
-    extract_ocr_data,
-    filter_ocr_data,
     build_text_from_ocr_data,
     compute_average_confidence,
+    extract_ocr_data,
+    filter_ocr_data,
 )
 
 
-def parse_scanned_pdf(file_bytes: bytes) -> tuple[list[str], int, list[list[dict]], list[float | None]]:
+def parse_scanned_pdf(
+    file_bytes: bytes,
+) -> tuple[list[str], int, list[list[dict]], list[float | None]]:
     page_texts = []
     page_ocr_data = []
     page_confidences = []
@@ -30,9 +32,7 @@ def parse_scanned_pdf(file_bytes: bytes) -> tuple[list[str], int, list[list[dict
         processed_image = preprocess_pil_image_for_ocr(image)
 
         ocr_data = extract_ocr_data(
-            processed_image,
-            lang="rus+eng",
-            config="--oem 3 --psm 6"
+            processed_image, lang="rus+eng", config="--oem 3 --psm 6"
         )
 
         ocr_data = filter_ocr_data(ocr_data)

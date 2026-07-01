@@ -31,7 +31,7 @@ class DocumentService:
         )
 
         return result
-    
+
     def summarize_document(self, file_path: str | Path) -> SummaryResult:
         document = self.process_document(file_path)
         summarizer = Summarizer()

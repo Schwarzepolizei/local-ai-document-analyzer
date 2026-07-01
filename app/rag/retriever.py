@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -15,8 +15,8 @@ class Retriever:
         self,
         query: str,
         top_k: int = 5,
-        document_id: Optional[str] = None,
-        file_name: Optional[str] = None,
+        document_id: str | None = None,
+        file_name: str | None = None,
     ) -> list[dict[str, Any]]:
         index, metadata = self.store.load()
 

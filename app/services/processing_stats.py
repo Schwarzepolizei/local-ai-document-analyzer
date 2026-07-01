@@ -1,9 +1,8 @@
-from typing import Optional
 
-from app.schemas.document import Page, Block, Chunk, ProcessingStats
+from app.schemas.document import Block, Chunk, Page, ProcessingStats
 
 
-def _safe_avg(values: list[float]) -> Optional[float]:
+def _safe_avg(values: list[float]) -> float | None:
     if not values:
         return None
     return round(sum(values) / len(values), 2)
@@ -33,7 +32,6 @@ def build_processing_stats(
         text_length=len(full_text),
         avg_page_confidence=_safe_avg(page_confidences),
         avg_page_quality=_safe_avg(page_qualities),
-
         tables_count=extra_stats.get("tables_count", 0),
         table_rows_count=table_rows_count,
         images_count=extra_stats.get("images_count", 0),

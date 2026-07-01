@@ -50,9 +50,9 @@ def preprocess_image_for_ocr(file_bytes: bytes) -> Image.Image:
 
     denoised = cv2.GaussianBlur(gray, (3, 3), 0)
 
-    thresholded = cv2.threshold(
-        denoised, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-    )[1]
+    thresholded = cv2.threshold(denoised, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[
+        1
+    ]
 
     return Image.fromarray(thresholded)
 
@@ -70,8 +70,8 @@ def preprocess_pil_image_for_ocr(pil_image: Image.Image) -> Image.Image:
 
     denoised = cv2.GaussianBlur(gray, (3, 3), 0)
 
-    thresholded = cv2.threshold(
-        denoised, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-    )[1]
+    thresholded = cv2.threshold(denoised, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[
+        1
+    ]
 
     return Image.fromarray(thresholded)
