@@ -3,6 +3,9 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+data/raw/
+data/processed/
+.env
 
 # Virtual env
 .venv/

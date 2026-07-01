@@ -1,10 +1,12 @@
 from pathlib import Path
 
+from app.pipeline.etl_pipeline import run_etl
+from app.schemas.document import ETLResponse
 from app.utils.logger import logger
 
 
 class DocumentService:
-    def process_document(self, file_path: str | Path) -> dict:
+    def process_document(self, file_path: str | Path) -> ETLResponse:
         path = Path(file_path)
 
         logger.info("Processing document: %s", path)
@@ -12,8 +14,19 @@ class DocumentService:
         if not path.exists():
             raise FileNotFoundError(f"File not found: {path}")
 
-        return {
-            "file_name": path.name,
-            "file_path": str(path),
-            "status": "processed",
-        }
+        file_bytes = path.read_bytes()
+
+        result = run_etl(
+            file_name=path.name,
+            file_bytes=file_bytes,
+        )
+
+        logger.info(
+            "Document processed: %s | status=%s | chunks=%s | quality=%s",
+            path.name,
+            result.processing.status,
+            len(result.content.chunks),
+            result.document.quality_label,
+        )
+
+        return result
