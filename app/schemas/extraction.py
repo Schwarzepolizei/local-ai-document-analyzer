@@ -15,3 +15,9 @@ class ExtractionResult(BaseModel):
     items: list[ExtractedItem] = []
     missing: list[str] = []
     notes: list[str] = []
+
+
+class ExtractionLLMResponse(BaseModel):
+    items: list[ExtractedItem] = []
+    missing: list[str] = []
+    notes: list[str] = []

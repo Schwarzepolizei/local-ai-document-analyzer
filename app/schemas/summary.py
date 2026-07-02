@@ -17,3 +17,10 @@ class SummaryResult(BaseModel):
     sections: list[SectionSummary] = []
     important_facts: list[str] = []
     quality_warnings: list[str] = []
+
+
+class SummaryLLMResponse(BaseModel):
+    key_idea: str = ""
+    short_summary: str = ""
+    detailed_summary: str = ""
+    important_facts: list[str] = []

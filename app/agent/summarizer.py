@@ -1,8 +1,10 @@
+from pydantic import ValidationError
+
 from app.agent.local_llm import LocalLLM
 from app.agent.parsers.summary_response_parser import SummaryResponseParser
 from app.prompts.summary_prompt import SummaryPrompt
 from app.schemas.document import ETLResponse
-from app.schemas.summary import SectionSummary, SummaryResult
+from app.schemas.summary import SectionSummary, SummaryLLMResponse, SummaryResult
 
 
 class Summarizer:
@@ -24,26 +26,50 @@ class Summarizer:
                 key_idea="Текст документа не найден.",
                 short_summary="Саммари невозможно сформировать.",
                 detailed_summary="Документ не содержит извлечённого текста.",
+                sections=[],
+                important_facts=[],
                 quality_warnings=document.processing.warnings,
             )
 
         prompt = SummaryPrompt.build(text)
-        llm_text = self.llm.generate(prompt)
+
+        try:
+            llm_json = self.llm.generate_json(prompt, temperature=0.2)
+            parsed = SummaryLLMResponse.model_validate(llm_json)
+
+            key_idea = parsed.key_idea
+            short_summary = parsed.short_summary
+            detailed_summary = parsed.detailed_summary
+            important_facts = parsed.important_facts
+
+        except (ValueError, ValidationError, AttributeError):
+            llm_text = self.llm.generate(prompt)
+
+            key_idea = self.response_parser.extract_section(
+                llm_text,
+                "Ключевая мысль",
+            )
+            short_summary = self.response_parser.extract_section(
+                llm_text,
+                "Краткое саммари",
+            )
+            detailed_summary = self.response_parser.extract_section(
+                llm_text,
+                "Подробное саммари",
+            )
+            important_facts = self.response_parser.extract_list(
+                llm_text,
+                "Важные факты",
+            )
 
         return SummaryResult(
             document_id=document.document_id,
             file_name=document.source.file_name,
-            key_idea=self.response_parser.extract_section(llm_text, "Ключевая мысль"),
-            short_summary=self.response_parser.extract_section(
-                llm_text,
-                "Краткое саммари",
-            ),
-            detailed_summary=self.response_parser.extract_section(
-                llm_text,
-                "Подробное саммари",
-            ),
+            key_idea=key_idea,
+            short_summary=short_summary,
+            detailed_summary=detailed_summary,
             sections=self._build_section_summaries(document),
-            important_facts=self.response_parser.extract_list(llm_text, "Важные факты"),
+            important_facts=important_facts,
             quality_warnings=document.processing.warnings,
         )
 

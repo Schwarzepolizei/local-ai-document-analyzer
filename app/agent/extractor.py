@@ -1,8 +1,10 @@
+from pydantic import ValidationError
+
 from app.agent.local_llm import LocalLLM
 from app.agent.parsers.extraction_response_parser import ExtractionResponseParser
 from app.prompts.extraction_prompt import ExtractionPrompt
 from app.schemas.document import ETLResponse
-from app.schemas.extraction import ExtractionResult
+from app.schemas.extraction import ExtractionLLMResponse, ExtractionResult
 
 
 class Extractor:
@@ -22,7 +24,9 @@ class Extractor:
                 document_id=document.document_id,
                 file_name=document.source.file_name,
                 request=user_request,
+                items=[],
                 missing=["Текст документа не найден."],
+                notes=[],
             )
 
         prompt = ExtractionPrompt.build(
@@ -30,13 +34,26 @@ class Extractor:
             user_request=user_request,
         )
 
-        llm_text = self.llm.generate(prompt)
+        try:
+            llm_json = self.llm.generate_json(prompt, temperature=0.0)
+            parsed = ExtractionLLMResponse.model_validate(llm_json)
+
+            items = parsed.items
+            missing = parsed.missing
+            notes = parsed.notes
+
+        except (ValueError, ValidationError, AttributeError):
+            llm_text = self.llm.generate(prompt)
+
+            items = self.response_parser.parse_items(llm_text)
+            missing = self.response_parser.parse_missing(llm_text)
+            notes = self.response_parser.parse_notes(llm_text)
 
         return ExtractionResult(
             document_id=document.document_id,
             file_name=document.source.file_name,
             request=user_request,
-            items=self.response_parser.parse_items(llm_text),
-            missing=self.response_parser.parse_missing(llm_text),
-            notes=self.response_parser.parse_notes(llm_text),
+            items=items,
+            missing=missing,
+            notes=notes,
         )

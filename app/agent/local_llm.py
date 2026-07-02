@@ -1,3 +1,4 @@
+import json
 import requests
 
 from app.config.settings import settings
@@ -34,3 +35,25 @@ class LocalLLM:
         response.raise_for_status()
 
         return response.json()["response"]
+
+    def generate_json(self, prompt: str, temperature: float = 0.0) -> dict:
+        logger.info("Generating JSON response with model: %s", self.model)
+
+        response = requests.post(
+            f"{self.base_url}/api/generate",
+            json={
+                "model": self.model,
+                "prompt": prompt,
+                "stream": False,
+                "format": "json",
+                "options": {
+                    "temperature": temperature,
+                },
+            },
+            timeout=self.timeout,
+        )
+
+        response.raise_for_status()
+
+        raw_text = response.json()["response"]
+        return json.loads(raw_text)
