@@ -11,12 +11,12 @@ class SummaryPrompt:
 Ответь только валидным JSON без Markdown.
 
 Схема:
-{
+{{
   "key_idea": "...",
   "short_summary": "...",
   "detailed_summary": "...",
   "important_facts": ["...", "..."]
-}
+}}
 
 Документ:
 {document_text}

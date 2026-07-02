@@ -21,18 +21,18 @@ class ExtractionPrompt:
 Ответь только валидным JSON без Markdown.
 
 Схема:
-{
+{{
   "items": [
-    {
+    {{
       "field": "...",
       "value": "...",
       "source": "...",
       "confidence": "высокая/средняя/низкая"
-    }
+    }}
   ],
   "missing": ["..."],
   "notes": ["..."]
-}
+}}
 
 Документ:
 {document_text}
