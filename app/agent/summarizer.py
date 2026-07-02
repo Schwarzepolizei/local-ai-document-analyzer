@@ -5,6 +5,7 @@ from app.agent.parsers.summary_response_parser import SummaryResponseParser
 from app.prompts.summary_prompt import SummaryPrompt
 from app.schemas.document import ETLResponse
 from app.schemas.summary import SectionSummary, SummaryLLMResponse, SummaryResult
+from app.services.document_structure import DocumentStructureBuilder
 
 
 class Summarizer:
@@ -12,9 +13,11 @@ class Summarizer:
         self,
         llm: LocalLLM | None = None,
         response_parser: SummaryResponseParser | None = None,
+        structure_builder: DocumentStructureBuilder | None = None,
     ) -> None:
         self.llm = llm or LocalLLM()
         self.response_parser = response_parser or SummaryResponseParser()
+        self.structure_builder = structure_builder or DocumentStructureBuilder()
 
     def summarize(self, document: ETLResponse) -> SummaryResult:
         text = document.content.full_text.strip()
@@ -68,23 +71,29 @@ class Summarizer:
             key_idea=key_idea,
             short_summary=short_summary,
             detailed_summary=detailed_summary,
-            sections=self._build_section_summaries(document),
+            sections=self._build_section_summaries_from_structure(document),
             important_facts=important_facts,
             quality_warnings=document.processing.warnings,
         )
 
-    def _build_section_summaries(self, document: ETLResponse) -> list[SectionSummary]:
+    def _build_section_summaries_from_structure(
+        self,
+        document: ETLResponse,
+    ) -> list[SectionSummary]:
         sections: list[SectionSummary] = []
 
-        for chunk in document.content.chunks[:10]:
-            title = chunk.section_title or f"Фрагмент {chunk.chunk_order}"
+        for section in self.structure_builder.build(document):
+            section_text = section.text.strip()
+
+            if not section_text:
+                continue
 
             sections.append(
                 SectionSummary(
-                    title=title,
-                    pages=chunk.page_span,
-                    main_idea=chunk.text[:250],
-                    summary=chunk.text[:500],
+                    title=section.title,
+                    pages=section.pages,
+                    main_idea=section_text[:250],
+                    summary=section_text[:500],
                 )
             )
 
