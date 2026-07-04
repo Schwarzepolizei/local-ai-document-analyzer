@@ -2,6 +2,7 @@ from pydantic import ValidationError
 
 from app.agent.local_llm import LocalLLM
 from app.agent.parsers.summary_response_parser import SummaryResponseParser
+from app.prompts.global_summary_prompt import GlobalSummaryPrompt
 from app.prompts.section_summary_prompt import SectionSummaryPrompt
 from app.prompts.summary_prompt import SummaryPrompt
 from app.schemas.document import ETLResponse
@@ -37,8 +38,16 @@ class Summarizer:
 
         prompt = SummaryPrompt.build(text)
 
+        section_summaries = self._build_section_summaries_from_structure(document)
+
+        global_prompt = GlobalSummaryPrompt.build(
+            section_summaries=self._format_section_summaries_for_global_prompt(
+                section_summaries,
+            )
+        )
+
         try:
-            llm_json = self.llm.generate_json(prompt, temperature=0.2)
+            llm_json = self.llm.generate_json(global_prompt, temperature=0.2)
             parsed = SummaryLLMResponse.model_validate(llm_json)
 
             key_idea = parsed.key_idea
@@ -47,6 +56,7 @@ class Summarizer:
             important_facts = parsed.important_facts
 
         except (ValueError, ValidationError, AttributeError):
+            prompt = SummaryPrompt.build(text)
             llm_text = self.llm.generate(prompt)
 
             key_idea = self.response_parser.extract_section(
@@ -72,7 +82,7 @@ class Summarizer:
             key_idea=key_idea,
             short_summary=short_summary,
             detailed_summary=detailed_summary,
-            sections=self._build_section_summaries_from_structure(document),
+            sections=section_summaries,
             important_facts=important_facts,
             quality_warnings=document.processing.warnings,
         )
@@ -115,3 +125,25 @@ class Summarizer:
             )
 
         return section_summaries
+    
+    def _format_section_summaries_for_global_prompt(
+        self,
+        section_summaries: list[SectionSummary],
+    ) -> str:
+        parts: list[str] = []
+
+        for index, section in enumerate(section_summaries, start=1):
+            pages = ", ".join(str(page) for page in section.pages) or "не указаны"
+
+            parts.append(
+                "\n".join(
+                    [
+                        f"Раздел {index}: {section.title}",
+                        f"Страницы: {pages}",
+                        f"Главная мысль: {section.main_idea}",
+                        f"Саммари: {section.summary}",
+                    ]
+                )
+            )
+
+        return "\n\n".join(parts)
