@@ -8,6 +8,7 @@ from app.prompts.summary_prompt import SummaryPrompt
 from app.schemas.document import ETLResponse
 from app.schemas.summary import SectionSummary, SummaryLLMResponse, SummaryResult, SectionSummaryLLMResponse
 from app.services.document_structure import DocumentStructureBuilder
+from app.utils.logger import logger
 
 
 class Summarizer:
@@ -39,6 +40,11 @@ class Summarizer:
         prompt = SummaryPrompt.build(text)
 
         section_summaries = self._build_section_summaries_from_structure(document)
+
+        logger.info(
+            "Building global summary from %s section summaries",
+            len(section_summaries),
+        )
 
         global_prompt = GlobalSummaryPrompt.build(
             section_summaries=self._format_section_summaries_for_global_prompt(
@@ -93,7 +99,20 @@ class Summarizer:
     ) -> list[SectionSummary]:
         section_summaries: list[SectionSummary] = []
 
-        for section in self.structure_builder.build(document):
+        document_sections = self.structure_builder.build(document)
+
+        logger.info(
+            "Document sections detected: %s",
+            len(document_sections),
+        )
+
+        for index, section in enumerate(document_sections, start=1):
+            logger.info(
+                "Summarizing section %s/%s: %s",
+                index,
+                len(document_sections),
+                section.title,
+            )
             section_text = section.text.strip()
 
             if not section_text:
