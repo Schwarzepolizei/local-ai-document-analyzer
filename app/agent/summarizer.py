@@ -41,6 +41,22 @@ class Summarizer:
 
         section_summaries = self._build_section_summaries_from_structure(document)
 
+        if len(section_summaries) == 1:
+            logger.info("Using single section summary as global summary")
+
+            section_summary = section_summaries[0]
+
+            return SummaryResult(
+                document_id=document.document_id,
+                file_name=document.source.file_name,
+                key_idea=section_summary.main_idea,
+                short_summary=section_summary.summary,
+                detailed_summary=section_summary.summary,
+                sections=section_summaries,
+                important_facts=[],
+                quality_warnings=document.processing.warnings,
+            )
+
         logger.info(
             "Building global summary from %s section summaries",
             len(section_summaries),
