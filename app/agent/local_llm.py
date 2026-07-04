@@ -1,5 +1,6 @@
 import json
 import requests
+from time import perf_counter
 
 from app.config.settings import settings
 from app.utils.logger import logger
@@ -19,6 +20,8 @@ class LocalLLM:
     def generate(self, prompt: str) -> str:
         logger.info("Generating response with model: %s", self.model)
 
+        started_at = perf_counter()
+
         response = requests.post(
             f"{self.base_url}/api/generate",
             json={
@@ -32,12 +35,21 @@ class LocalLLM:
             timeout=self.timeout,
         )
 
+        elapsed = perf_counter() - started_at
+
+        logger.info(
+            "Text response generated in %.2f sec",
+            elapsed,
+        )
+
         response.raise_for_status()
 
         return response.json()["response"]
 
     def generate_json(self, prompt: str, temperature: float = 0.0) -> dict:
         logger.info("Generating JSON response with model: %s", self.model)
+
+        started_at = perf_counter()
 
         response = requests.post(
             f"{self.base_url}/api/generate",
@@ -51,6 +63,13 @@ class LocalLLM:
                 },
             },
             timeout=self.timeout,
+        )
+
+        elapsed = perf_counter() - started_at
+
+        logger.info(
+            "JSON response generated in %.2f sec",
+            elapsed,
         )
 
         response.raise_for_status()
