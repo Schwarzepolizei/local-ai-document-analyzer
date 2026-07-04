@@ -24,3 +24,8 @@ class SummaryLLMResponse(BaseModel):
     short_summary: str = ""
     detailed_summary: str = ""
     important_facts: list[str] = []
+
+
+class SectionSummaryLLMResponse(BaseModel):
+    main_idea: str = ""
+    summary: str = ""

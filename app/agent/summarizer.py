@@ -2,9 +2,10 @@ from pydantic import ValidationError
 
 from app.agent.local_llm import LocalLLM
 from app.agent.parsers.summary_response_parser import SummaryResponseParser
+from app.prompts.section_summary_prompt import SectionSummaryPrompt
 from app.prompts.summary_prompt import SummaryPrompt
 from app.schemas.document import ETLResponse
-from app.schemas.summary import SectionSummary, SummaryLLMResponse, SummaryResult
+from app.schemas.summary import SectionSummary, SummaryLLMResponse, SummaryResult, SectionSummaryLLMResponse
 from app.services.document_structure import DocumentStructureBuilder
 
 
@@ -80,7 +81,7 @@ class Summarizer:
         self,
         document: ETLResponse,
     ) -> list[SectionSummary]:
-        sections: list[SectionSummary] = []
+        section_summaries: list[SectionSummary] = []
 
         for section in self.structure_builder.build(document):
             section_text = section.text.strip()
@@ -88,13 +89,29 @@ class Summarizer:
             if not section_text:
                 continue
 
-            sections.append(
+            prompt = SectionSummaryPrompt.build(
+                title=section.title,
+                text=section_text,
+            )
+
+            try:
+                llm_json = self.llm.generate_json(prompt, temperature=0.2)
+                parsed = SectionSummaryLLMResponse.model_validate(llm_json)
+
+                main_idea = parsed.main_idea
+                summary = parsed.summary
+
+            except (ValueError, ValidationError, AttributeError):
+                main_idea = section_text[:250]
+                summary = section_text[:500]
+
+            section_summaries.append(
                 SectionSummary(
                     title=section.title,
                     pages=section.pages,
-                    main_idea=section_text[:250],
-                    summary=section_text[:500],
+                    main_idea=main_idea,
+                    summary=summary,
                 )
             )
 
-        return sections
+        return section_summaries
