@@ -28,8 +28,11 @@ class LocalLLM:
                 "model": self.model,
                 "prompt": prompt,
                 "stream": False,
+                "keep_alive": "10m",
                 "options": {
                     "temperature": 0.2,
+                    "num_predict": 700,
+                    "num_ctx": 4096,
                 },
             },
             timeout=self.timeout,
@@ -58,8 +61,11 @@ class LocalLLM:
                 "prompt": prompt,
                 "stream": False,
                 "format": "json",
+                "keep_alive": "10m",
                 "options": {
                     "temperature": temperature,
+                    "num_predict": 700,
+                    "num_ctx": 4096,
                 },
             },
             timeout=self.timeout,
