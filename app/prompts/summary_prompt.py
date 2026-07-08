@@ -1,14 +1,15 @@
 class SummaryPrompt:
     @staticmethod
-    def build(text: str, max_chars: int = 12000) -> str:
-        document_text = text[:max_chars]
-
+    def build(text: str) -> str:
         return f"""
 Ты — локальный AI-агент для анализа документов.
 
-Сделай саммари документа на русском языке.
+Сделай краткое саммари документа.
 
 Ответь только валидным JSON без Markdown.
+Пиши кратко.
+Не больше 1 предложения на поле.
+important_facts: максимум 5 пунктов.
 
 Схема:
 {{
@@ -18,6 +19,6 @@ class SummaryPrompt:
   "important_facts": ["...", "..."]
 }}
 
-Документ:
-{document_text}
-"""
+Текст документа:
+{text}
+""".strip()

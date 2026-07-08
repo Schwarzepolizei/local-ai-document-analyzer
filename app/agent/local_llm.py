@@ -64,7 +64,7 @@ class LocalLLM:
                 "keep_alive": "10m",
                 "options": {
                     "temperature": temperature,
-                    "num_predict": 700,
+                    "num_predict": 350,
                     "num_ctx": 4096,
                 },
             },
